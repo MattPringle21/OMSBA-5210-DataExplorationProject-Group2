@@ -68,10 +68,12 @@ price_rent <- price_rent %>%
   left_join(region_lookup, by = c("RegionID", "RegionName" = "RegionName"))
 names(price_rent)
 
-#plot map
+
+########################################  
+#plot map for price-rent index
 select_date <- date('2025-01-31') #enter a date to filter data 
 
-latest_city_us <- price_rent %>%
+price_rent <- price_rent %>%
   group_by(RegionID) %>%
   filter(date == select_date) %>% #filter date variable
   ungroup() %>%
@@ -84,7 +86,7 @@ latest_city_us <- price_rent %>%
   st_drop_geometry()
 
 
-latest_city_us <- latest_city_us %>%
+price_rent <- price_rent %>%
   mutate(
     ptr_bucket = case_when(
       price_to_rent >= 1  & price_to_rent <= 15 ~ "Better to buy (1–15)",
@@ -95,7 +97,7 @@ latest_city_us <- latest_city_us %>%
 
 p <- plot_usmap(regions = "states", fill = "white") +
   geom_point(
-    data = latest_city_us %>% filter(!is.na(ptr_bucket), !is.na(ptr_bucket),
+    data = price_rent %>% filter(!is.na(ptr_bucket), !is.na(ptr_bucket),
                                      RegionType != 'country'),
     aes(
       x = x, y = y,
@@ -141,7 +143,6 @@ vtable(demand_long, lush = TRUE)
 
  
 #map index
-select_date <- date('2025-01-31') #enter a date to filter data 
 
 date_demand <- demand_long %>%
   group_by(RegionID) %>%
@@ -155,8 +156,8 @@ date_demand <- demand_long %>%
   ) %>%
   st_drop_geometry()
 
-# 4) plot: color = demand index (heat)
-p2 <- plot_usmap(regions = "states", fill = "gray98") +
+# plot: color = demand index (heat)
+p2 <- plot_usmap(regions = "states", fill = "white") +
   geom_point(
     data = date_demand %>% filter(RegionType != "country"),
     aes(x = x, y = y, size = demand_index, color = demand_index),
@@ -167,6 +168,9 @@ p2 <- plot_usmap(regions = "states", fill = "gray98") +
   theme_void()
 
 p2
+ggplot(demand_long %>% filter(RegionName == 'United States'), aes(x = date, y = demand_index)) +
+  geom_line() + geom_point() 
+
 
 ###############################################
 #Zillow home market heat index (demand)
@@ -194,8 +198,8 @@ date_demand_home <- demand_home_long %>%
   ) %>%
   st_drop_geometry()
 
-# 4) plot: color = demand index (heat)
-p3 <- plot_usmap(regions = "states", fill = "gray98") +
+# plot: color = demand index (heat)
+p3 <- plot_usmap(regions = "states", fill = "white") +
   geom_point(
     data = date_demand_home %>% filter(RegionType != "country"),
     aes(x = x, y = y, size = demand_home_index, color = demand_home_index),
@@ -206,4 +210,11 @@ p3 <- plot_usmap(regions = "states", fill = "gray98") +
   theme_void()
 
 p3
+
+#plot US home market index over time 
+
+ggplot(demand_home_long %>% filter(RegionName == 'United States'), aes(x = date, y = demand_home_index)) +
+  geom_line() + geom_point() 
+
+
 
